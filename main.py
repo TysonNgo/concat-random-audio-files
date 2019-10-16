@@ -23,6 +23,7 @@ def assertConfig():
     AssertConfig.assertString(config["out_dir"])
     AssertConfig.assertString(config["out_file_prefix"])
     AssertConfig.assertString(config["in_dir"])
+    AssertConfig.assertString(config["extension"])
 
     AssertConfig.assertNumber(config["duration_in_seconds"])
     AssertConfig.assertNumber(config["number_of_random_files"])
@@ -33,6 +34,7 @@ def generate_files():
     files_to_process = config['number_of_random_files']
     out_dir = config['out_dir']
     out_file_prefix = config['out_file_prefix']
+    ext = config["extension"]
 
     files = get_file_list()
     random.shuffle(files)
@@ -55,7 +57,7 @@ def generate_files():
             except NotAnAudioFile as ex:
                 print(ex)
 
-        out_file = os.path.join(out_dir,  f'{out_file_prefix}{_}.mp3')
+        out_file = os.path.join(out_dir,  f'{out_file_prefix}{_}.{ext}')
         for i in range(len(inputs)):
             inputs[i] = f'-i "{inputs[i]}"'
         filters = '-filter_complex ' + \

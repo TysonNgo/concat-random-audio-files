@@ -4,5 +4,6 @@
     "out_dir": "",
     "in_dir": "",
     "length_in_seconds": 600,
-    "number_of_random_files": 10
+    "number_of_random_files": 10,
+    "extension": "mp3"
 }
