@@ -2,7 +2,7 @@
 
 Modify the `config.json` values.
 
-```json
+```js
 {
     "ffmpeg_path": "path/to/ffmpeg",
     "ffprobe_path": "path/to/ffprobe",
@@ -11,4 +11,10 @@ Modify the `config.json` values.
     "length_in_seconds": 600, // length of the concatenated file
     "number_of_random_files": 10 // number of files that will be saved to out_dir
 }
+```
+
+Run the python script
+
+```
+python3 main.py
 ```
