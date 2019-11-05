@@ -94,7 +94,7 @@ def generate_ffmpeg_commands():
         print (ffmpeg_cmd)
         cmds.append(ffmpeg_cmd)
 
-    return cmds
+    return cmds[::-1]
 
 def spawn_ffmpeg_processes(commands):
     files_to_process = config['number_of_random_files']
