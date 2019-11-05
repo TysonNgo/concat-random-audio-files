@@ -11,6 +11,7 @@ Modify the `config.json` values.
     "length_in_seconds": 600, // length of the concatenated file
     "number_of_random_files": 10, // number of files that will be saved to out_dir
     "number_of_concurrent_ffmpeg_processes": 5, // maximum number of ffmpeg processes that will run concurrently
+    "intro": "path/to/audio/file.mp3", // audio file to play at the start
     "extension": "mp3"
 }
 ```
