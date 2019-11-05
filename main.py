@@ -44,6 +44,7 @@ def generate_ffmpeg_commands():
     out_dir = config['out_dir']
     out_file_prefix = config['out_file_prefix']
     ext = config["extension"]
+    intro = config['intro'] if 'intro' in config else ''
 
     files = get_file_list()
     random.shuffle(files)
@@ -73,6 +74,9 @@ def generate_ffmpeg_commands():
                 retries += 1
 
         out_file = os.path.join(out_dir,  f'{out_file_prefix}{_}.{ext}')
+
+        if intro:
+            inputs[:] = [intro] + inputs
 
         # example ffmpeg command
         # "ffmpeg" -hide_banner -loglevel panic \
