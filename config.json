@@ -5,5 +5,7 @@
     "in_dir": "",
     "length_in_seconds": 600,
     "number_of_random_files": 10,
+    "number_of_concurrent_ffmpeg_processes": 5,
+    "intro": ".\\start.mp3",
     "extension": "mp3"
 }
