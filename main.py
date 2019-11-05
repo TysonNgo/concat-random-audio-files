@@ -1,5 +1,5 @@
 from pathlib import Path
-from subprocess import Popen
+from subprocess import Popen, PIPE
 import json
 import os
 import random
@@ -34,10 +34,13 @@ def generate_ffmpeg_commands():
     """
     rtype: List(str)
     """
-    ffmpeg = f'"{config["ffmpeg_path"]}" -hide_banner -loglevel panic'
+    ffmpeg = [
+        f'{config["ffmpeg_path"]}',
+        '-hide_banner',
+        '-loglevel', 'panic'
+    ]
     duration = config['duration_in_seconds']
     files_to_process = config['number_of_random_files']
-    concurrent_ffmpeg_proc = config['number_of_concurrent_ffmpeg_processes']
     out_dir = config['out_dir']
     out_file_prefix = config['out_file_prefix']
     ext = config["extension"]
@@ -52,11 +55,6 @@ def generate_ffmpeg_commands():
         prev_length, retries = length, 0
         inputs = []
         while length < duration:
-            # TODO fix
-            # this could potentially become an infinite loop
-            # if the input directory does not contain audio files
-            # in any of its sub directories
-
             if retries > 10:
                 print (f'Cannot create an audio file of {duration} seconds')
                 sys.exit(1)
@@ -67,7 +65,7 @@ def generate_ffmpeg_commands():
             try:
                 prev_length = length
                 length += get_duration(f)
-                inputs.append(f)
+                inputs.append(str(f))
             except NotAnAudioFile as ex:
                 print(ex)
                 continue
@@ -75,31 +73,46 @@ def generate_ffmpeg_commands():
                 retries += 1
 
         out_file = os.path.join(out_dir,  f'{out_file_prefix}{_}.{ext}')
-        for i in range(len(inputs)):
-            inputs[i] = f'-i "{inputs[i]}"'
-
-        filters = '-filter_complex ' + \
-                  '"' + \
-                  ''.join([f'[{i}:a]' for i in range(len(inputs))]) + \
-                  f'concat=n={len(inputs)}:v=0:a=1[o],[o]afade=t=out:d=5:st={duration-5} [out]' + \
-                  '"'
 
         # example ffmpeg command
         # "ffmpeg" -hide_banner -loglevel panic \
-        # -i "path/to/first/file.mp3" -i "path/to/second/file.mp3" \
-        # -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[o],[o]afade=t=out:d=5:st=595 [out]" \
-        # -map [out] -t 600 -y ".\out0.mp3"
-        ffmpeg_cmd = f'{ffmpeg} {" ".join(inputs)} {filters} -map [out] -t {duration} -y "{out_file}"'
+        # -i "concat:path/to/first/file.mp3|path/to/second/file.mp3" \
+        # -t 600 -y -c copy ".\out0.mp3"
+        ffmpeg_cmd = [
+            *ffmpeg,
+            '-i', 'concat:'+'|'.join(inputs),
+            '-t', str(duration),
+            '-y',
+            '-c', 'copy',
+            out_file
+        ]
 
         print (ffmpeg_cmd)
         cmds.append(ffmpeg_cmd)
-        #os.popen(ffmpeg_cmd)
 
     return cmds
 
 def spawn_ffmpeg_processes(commands):
-    print(len(commands))
-    Popen(commands[0].split(' '), stdout=sys.stdout, stdin=sys.stdin)
+    files_to_process = config['number_of_random_files']
+    num_procs = config['number_of_concurrent_ffmpeg_processes']
+    processes = []
+    complete = 0
+    while commands or (not commands and len(processes) > 0):
+        if commands and len(processes) < num_procs:
+            cmd = commands.pop()
+            p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            processes.append(p)
+        else:
+            finished = []
+            for i in range(len(processes)):
+                processes[i].poll()
+                if processes[i].returncode is not None:
+                    finished.append(i)
+                    complete += 1
+                    print (f'{complete}/{files_to_process} audio files generated...')
+            for i in finished:
+                del processes[i]
+
 
 def get_file_list():
     files = list(Path(config['in_dir']).glob('**/*'))
@@ -122,3 +135,6 @@ with open('config.json') as f:
 if __name__ == '__main__':
     cmds = generate_ffmpeg_commands()
     spawn_ffmpeg_processes(cmds)
+    # TODO
+    # generate ffmpeg commands and spawn
+    # processes concurrently

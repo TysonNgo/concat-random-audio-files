@@ -10,6 +10,7 @@ Modify the `config.json` values.
     "in_dir": "", // the directory (and all sub directories in said directory) to get the random audio files from
     "length_in_seconds": 600, // length of the concatenated file
     "number_of_random_files": 10, // number of files that will be saved to out_dir
+    "number_of_concurrent_ffmpeg_processes": 5, // maximum number of ffmpeg processes that will run concurrently
     "extension": "mp3"
 }
 ```
