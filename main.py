@@ -78,21 +78,38 @@ def generate_ffmpeg_commands():
         if intro:
             inputs[:] = [intro] + inputs
 
+        # [-i, file1, -i file2, ..., -i, fileN]
+        ffmpeg_inputs = [
+            option
+            for pair in zip(['-i' for _ in range(len(inputs))], inputs)
+            for option in pair
+        ]
+
+        filter_complex = [
+            '-filter_complex',
+            ''.join([f'[{i}:a]' for i in range(len(inputs))]) +
+            f'concat=n={len(inputs)}:v=0:a=1 [out]',
+            '-map', '[out]'
+        ]
+
         # example ffmpeg command
         # "ffmpeg" -hide_banner -loglevel panic \
-        # -i "concat:path/to/first/file.mp3|path/to/second/file.mp3" \
+        # -i "path/to/first/file.mp3" -i "path/to/second/file.mp3" \
+        # -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1 [out]" -map [out] \
         # -t 600 -y -c copy ".\out0.mp3"
         ffmpeg_cmd = [
             *ffmpeg,
-            '-i', 'concat:'+'|'.join(inputs),
+            *ffmpeg_inputs,
+            *filter_complex,
             '-t', str(duration),
             '-y',
-            '-c', 'copy',
+            '-b:a', '192k',
             out_file
         ]
 
         print (ffmpeg_cmd)
         cmds.append(ffmpeg_cmd)
+        break
 
     return cmds[::-1]
 
