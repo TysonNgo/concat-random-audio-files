@@ -109,7 +109,6 @@ def generate_ffmpeg_commands():
 
         print (ffmpeg_cmd)
         cmds.append(ffmpeg_cmd)
-        break
 
     return cmds[::-1]
 
